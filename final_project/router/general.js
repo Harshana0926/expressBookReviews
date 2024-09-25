@@ -90,4 +90,37 @@ public_users.get('/review/:isbn',function (req, res) {
     res.status(404).send(JSON.stringify({ error: 'Book not found' }, null, 4));  // Send error if the book is not found
   }
 });
+
+public_users.put('/review/:isbn', function (req, res) {
+    const isbn = req.params.isbn; // Get ISBN from URL
+    const review = req.query.review; // Get review from request query
+    const username = req.session.authorization ? req.session.authorization.username : null; // Get the username from session
+    
+    // Check if the book exists in the 'books' database
+    if (books[isbn]) {
+        if (!username) {
+            return res.status(403).json({ message: "User not logged in" });
+        }
+
+        // Check if the book already has reviews, if not, create an empty reviews object
+        if (!books[isbn].reviews) {
+            books[isbn].reviews = {};
+        }
+
+        // Add or modify the user's review for the book
+        books[isbn].reviews[username] = review;
+
+        // Respond with the updated reviews
+        return res.status(200).json({
+            message: `Review added/updated successfully for ISBN: ${isbn}`,
+            reviews: books[isbn].reviews
+        });
+    } else {
+        return res.status(404).json({ message: `Book with ISBN: ${isbn} not found` });
+    }
+});
+
+
+
+
 module.exports.general = public_users;
