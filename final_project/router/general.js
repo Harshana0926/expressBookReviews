@@ -120,6 +120,36 @@ public_users.put('/review/:isbn', function (req, res) {
     }
 });
 
+public_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn; // Get the ISBN from the URL parameters
+    const username = req.session.authorization ? req.session.authorization.username : null; // Get the username from the session
+
+    if (!username) {
+        return res.status(403).json({ message: "User not logged in" });
+    }
+
+    // Check if the book exists
+    if (books[isbn]) {
+        const reviews = books[isbn].reviews; // Get the book's reviews
+
+        // Check if the user has posted a review
+        if (reviews && reviews[username]) {
+            // Delete the user's review
+            delete reviews[username];
+
+            return res.status(200).json({
+                message: `Review by ${username} for ISBN: ${isbn} deleted successfully`,
+                reviews: reviews
+            });
+        } else {
+            return res.status(404).json({
+                message: `No review found by user ${username} for ISBN: ${isbn}`
+            });
+        }
+    } else {
+        return res.status(404).json({ message: `Book with ISBN: ${isbn} not found` });
+    }
+});
 
 
 
